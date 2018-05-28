@@ -63,7 +63,11 @@ anagrams n = showResult . groupByKey . sort . map addKey . getWords n
   ["Brave","World"]
 -}
 getWords :: Int -> [Word] -> [Word]
-getWords = undefined -- TODO
+getWords n = filter (\x -> length x==n)
+
+--   |n>0 && length [c]==n && ([c]:[cs]) /= [] = [c]: getWords n [cs]
+--   |n>0 && length [c]/=n && ([c]:[cs]) /= [] =  getWords n [cs]
+--   |otherwise = []
 
 {-|
   The 'addKey' function takes a word and pairs it with its key.
@@ -75,7 +79,7 @@ getWords = undefined -- TODO
   ("dorw","word")
 -}
 addKey :: Word -> (Key, Word)
-addKey = undefined -- TODO
+addKey n = (sort n, n)
 
 -- | An 'Entry' associates an anagram key with the list of words corresponding to that key.
 type Entry = (Key, [Word])
@@ -94,7 +98,12 @@ type Entry = (Key, [Word])
   [("ab",["ab"]),("xy",["xy"]),("ab",["ba"])]
 -}
 groupByKey :: [(Key, Word)] -> [Entry]
-groupByKey = undefined -- TODO
+groupByKey (x:xs) = case x:xs of
+ [] -> []
+-- [x]  -> [(fst x,[fst x])]
+ _:xs
+     |fst x == fst (head xs) -> (fst x,fst x : [snd (head xs)]):groupByKey xs
+     |otherwise -> (fst x,[fst x] ):groupByKey xs
 
 {-|
   The 'showResult' function produces a printable string from a list of association entries.
@@ -106,7 +115,9 @@ groupByKey = undefined -- TODO
   xy: xy,yx
 -}
 showResult :: [Entry] -> String
-showResult = undefined -- TODO
+showResult (x:xs) = case x:xs of
+ [] -> []
+ _:xs -> show (fst x) ++ ": " ++ show (snd x) ++ "\n" ++ showResult xs
 
 main :: IO ()
 main = do
