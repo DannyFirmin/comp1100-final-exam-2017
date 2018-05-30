@@ -106,17 +106,25 @@ groupByKey :: [(Key, Word)] -> [Entry]
 --      |fst x == fst (head xs)  -> (fst x,fst x : [snd (head xs)]): tail (groupByKey (y:xs))
 --      |otherwise -> (fst x,[fst x]): tail (groupByKey (y:xs))
 
-groupByKey [] = []
-groupByKey [(a,b)] =  [(a,[b])]
-groupByKey [(a,b),(d,c)]
-  | a==d = [(a,[b,c])]
-  | otherwise = [(a,[b]),(d,[c])]
-groupByKey [(a,b),(c,d),(e,f)]
-  |a==c && c==e = [(a,[b,d,f])]
-  |a==c && c/=e = groupByKey [(a,b),(c,d)]
-  |a/=c && c==e = head(groupByKey [(c,d),(e,f)]):[]
-  |otherwise = [(a,[b]),(d,[c]),(e,[f])]
-groupByKey (x:y:k:xs) =  groupByKey [x,y,k] ++  (groupByKey (k:xs))
+groupByKey []=[]
+groupByKey [(k1,w1)] = [(k1,[w1])]
+groupByKey [(k1,w1),(k2,w2)]
+  |k1==k2 = [(k1,[w1,w2])]
+  |otherwise = [(k1,[w1]),(k2,[w2])]
+groupByKey (x:y:xs) = groupByKey [x,y] ++ groupByKey xs
+-- !!!
+-- groupByKey [] = []
+-- groupByKey [(a,b)] =  [(a,[b])]
+-- groupByKey [(a,b),(d,c)]
+--   | a==d = [(a,[b,c])]
+--   | otherwise = [(a,[b]),(d,[c])]
+-- groupByKey [(a,b),(c,d),(e,f)]
+--   |a==c && c==e = [(a,[b,d,f])]
+--   |a==c && c/=e = groupByKey [(a,b),(c,d)]
+--   |a/=c && c==e = head(groupByKey [(c,d),(e,f)]):[]
+--   |otherwise = [(a,[b]),(d,[c]),(e,[f])]
+-- groupByKey (x:y:k:xs) =  groupByKey [x,y,k] ++  (groupByKey (k:xs))
+-- !!!
 
 -- groupByKey (x:y:xs) = removeT ( groupByKey [x,y] ++  (groupByKey (y:xs)))
 --
