@@ -98,7 +98,7 @@ type Entry = (Key, [Word])
   [("ab",["ab"]),("xy",["xy"]),("ab",["ba"])]
 -}
 
--- groupByKey :: [(Key, Word)] -> [Entry]
+groupByKey :: [(Key, Word)] -> [Entry]
 -- groupByKey (x:xs) = case x:xs of
 --  [x] -> [(fst x, [snd x])]
 --  [x, y] ->  if fst x == fst y then [(fst x,fst x : [snd y])] else [(fst x, [fst x]), (fst y, [snd y])]
@@ -111,7 +111,12 @@ groupByKey [(a,b)] =  [(a,[b])]
 groupByKey [(a,b),(d,c)]
   | a==d = [(a,[b,c])]
   | otherwise = [(a,[b]),(d,[c])]
-groupByKey (x:y:xs) =  groupByKey [x,y] ++  [last(groupByKey (y:xs))]
+groupByKey [(a,b),(c,d),(e,f)]
+  |a==c && c==e = [(a,[b,d,f])]
+  |a==c && c/=e = groupByKey [(a,b),(c,d)]
+  |a/=c && c==e = head(groupByKey [(c,d),(e,f)]):[]
+  |otherwise = [(a,[b]),(d,[c]),(e,[f])]
+groupByKey (x:y:k:xs) =  groupByKey [x,y,k] ++  (groupByKey (k:xs))
 
 -- groupByKey (x:y:xs) = removeT ( groupByKey [x,y] ++  (groupByKey (y:xs)))
 --
