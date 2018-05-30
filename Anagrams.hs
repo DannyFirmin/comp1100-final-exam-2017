@@ -98,18 +98,29 @@ type Entry = (Key, [Word])
   [("ab",["ab"]),("xy",["xy"]),("ab",["ba"])]
 -}
 
---For input: groupByKey [("ab","ab"),("ab","ba"),("xy","xy"),("xy","yx")]
---My output is [("ab",["ab","ba"]),("ab",["ab"]),("xy",["xy","yx"])] which might not be correct
---I think the correct output should be [("ab",["ab","ba"]),("xy",["xy","yx"])]
---but how can I adjust my code to get the right result? I'm using recursion. I can't jump to the next next element, can I?
-groupByKey :: [(Key, Word)] -> [Entry]
-groupByKey (x:xs) = case x:xs of
- [x] -> [(fst x, [snd x])]
- [x, y] ->  if fst x == fst y then [(fst x,fst x : [snd y])] else [(fst x, [fst x]), (fst y, [snd y])]
- _:xs
-     |fst x == fst (head xs)  -> (fst x,fst x : [snd (head xs)]):groupByKey xs
-     |otherwise -> (fst x,[fst x]):groupByKey xs
+-- groupByKey :: [(Key, Word)] -> [Entry]
+-- groupByKey (x:xs) = case x:xs of
+--  [x] -> [(fst x, [snd x])]
+--  [x, y] ->  if fst x == fst y then [(fst x,fst x : [snd y])] else [(fst x, [fst x]), (fst y, [snd y])]
+--  x:y:xs
+--      |fst x == fst (head xs)  -> (fst x,fst x : [snd (head xs)]): tail (groupByKey (y:xs))
+--      |otherwise -> (fst x,[fst x]): tail (groupByKey (y:xs))
 
+groupByKey [] = []
+groupByKey [(a,b)] =  [(a,[b])]
+groupByKey [(a,b),(d,c)]
+  | a==d = [(a,[b,c])]
+  | otherwise = [(a,[b]),(d,[c])]
+groupByKey (x:y:xs) =  groupByKey [x,y] ++  [last(groupByKey (y:xs))]
+
+-- groupByKey (x:y:xs) = removeT ( groupByKey [x,y] ++  (groupByKey (y:xs)))
+--
+-- removeT :: [Entry] -> [Entry]
+-- removeT [] = []
+-- removeT [x] = [x]
+-- removeT (x:y:xs)
+--   |x==y = removeT (y:xs)
+--   |otherwise = x : removeT (y:xs)
 {-|
   The 'showResult' function produces a printable string from a list of association entries.
 
@@ -120,19 +131,29 @@ groupByKey (x:xs) = case x:xs of
   xy: xy,yx
 -}
 showResult :: [Entry] -> String
-showResult (x:xs) = case x:xs of
- [] -> []
- [x]-> fst x ++ ": " ++ a ++  "," ++ b ++ "\n"
-  where
-     [a, b] = snd x
- x:xs -> fst x ++ ": " ++ a ++ "," ++ b ++ "\n" ++ showResult xs
-  where
-     [a, b] = snd x -- I think I'm wrong. Because the method I used only fit the given doctest
-     -- what if there is more or less element than 2 in the list of second tuple?
-     -- e.g. run [("ab",["ab","ba"]),("ab",["ab"]),("xy",["xy","yx"])]
-     -- get an error: Irrefutable pattern failed for pattern [a, b]
-     -- because ("ab",["ab"]) only has one element in the list ["ab"] so it cannot match [a,b]
-     -- My question is, how can I fit all the conditions?
+-- showResult (x:xs) = case x:xs of
+--  [] -> []
+--  [x]-> fst x ++ ": " ++ a ++  "," ++ b ++ "\n"
+--   where
+--      [a, b] = snd x
+--  x:xs -> fst x ++ ": " ++ a ++ "," ++ b ++ "\n" ++ showResult xs
+--   where
+--      [a, b] = snd x -- I think I'm wrong. Because the method I used only fit the given doctest
+--      -- what if there is more or less element than 2 in the list of second tuple?
+--      -- e.g. run [("ab",["ab","ba"]),("ab",["ab"]),("xy",["xy","yx"])]
+--      -- get an error: Irrefutable pattern failed for pattern [a, b]
+--      -- because ("ab",["ab"]) only has one element in the list ["ab"] so it cannot match [a,b]
+--      -- My question is, how can I fit all the conditions?
+showResult list = case list of
+  [] -> ""
+  ((a,[]):xs) -> a ++ ": " ++ showlistOfList [] ++ "\n" ++ showResult xs
+  ((a,x:xs):ys) -> a ++ ": " ++ showlistOfList (x:xs) ++ "\n" ++ showResult ys
+
+showlistOfList :: [Word] -> String
+showlistOfList [] = ""
+showlistOfList [b,c] = b ++ "," ++ c
+showlistOfList (x:xs) = x ++ showlistOfList xs
+
 main :: IO ()
 main = do
   [n] <- getArgs
