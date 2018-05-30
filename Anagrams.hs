@@ -97,13 +97,18 @@ type Entry = (Key, [Word])
   >>> groupByKey [("ab","ab"),("xy","xy"),("ab","ba")]
   [("ab",["ab"]),("xy",["xy"]),("ab",["ba"])]
 -}
+
+--For input: groupByKey [("ab","ab"),("ab","ba"),("xy","xy"),("xy","yx")]
+--My output is [("ab",["ab","ba"]),("ab",["ab"]),("xy",["xy","yx"])] which might not be correct
+--I think the correct output should be [("ab",["ab","ba"]),("xy",["xy","yx"])]
+--but how can I adjust my code to get the right result? I'm using recursion. I can't jump to the next next element, can I?
 groupByKey :: [(Key, Word)] -> [Entry]
 groupByKey (x:xs) = case x:xs of
- [] -> []
--- [x]  -> [(fst x,[fst x])]
+ [x] -> [(fst x, [snd x])]
+ [x, y] ->  if fst x == fst y then [(fst x,fst x : [snd y])] else [(fst x, [fst x]), (fst y, [snd y])]
  _:xs
-     |fst x == fst (head xs) -> (fst x,fst x : [snd (head xs)]):groupByKey xs
-     |otherwise -> (fst x,[fst x] ):groupByKey xs
+     |fst x == fst (head xs)  -> (fst x,fst x : [snd (head xs)]):groupByKey xs
+     |otherwise -> (fst x,[fst x]):groupByKey xs
 
 {-|
   The 'showResult' function produces a printable string from a list of association entries.
@@ -117,8 +122,17 @@ groupByKey (x:xs) = case x:xs of
 showResult :: [Entry] -> String
 showResult (x:xs) = case x:xs of
  [] -> []
- _:xs -> show (fst x) ++ ": " ++ show (snd x) ++ "\n" ++ showResult xs
-
+ [x]-> fst x ++ ": " ++ a ++  "," ++ b ++ "\n"
+  where
+     [a, b] = snd x
+ x:xs -> fst x ++ ": " ++ a ++ "," ++ b ++ "\n" ++ showResult xs
+  where
+     [a, b] = snd x -- I think I'm wrong. Because the method I used only fit the given doctest
+     -- what if there is more or less element than 2 in the list of second tuple?
+     -- e.g. run [("ab",["ab","ba"]),("ab",["ab"]),("xy",["xy","yx"])]
+     -- get an error: Irrefutable pattern failed for pattern [a, b]
+     -- because ("ab",["ab"]) only has one element in the list ["ab"] so it cannot match [a,b]
+     -- My question is, how can I fit all the conditions?
 main :: IO ()
 main = do
   [n] <- getArgs
